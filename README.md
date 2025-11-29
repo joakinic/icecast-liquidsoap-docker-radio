@@ -64,20 +64,6 @@ Abre en VLC, navegador, o cualquier reproductor de radio por Internet.
 **Usuario:** `admin`  
 **Contraseña:** (la configurada en `ADMIN_PASSWORD`)
 
-### Control remoto (Telnet)
-
-```bash
-# Conectarse al servidor de control
-docker exec -it radio-liquidsoap telnet localhost 1234
-
-# Comandos útiles:
-help                    # Ver todos los comandos
-music_playlist.skip     # Saltar canción actual
-music_playlist.next     # Ver próximas canciones
-music_playlist.reload   # Recargar lista
-quit                    # Salir
-```
-
 ## ⚙️ Configuración
 
 ### Variables de entorno (.env)

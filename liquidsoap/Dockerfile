@@ -20,7 +20,4 @@ RUN mkdir -p /var/log/liquidsoap && \
 # Volver a usuario liquidsoap
 USER liquidsoap
 
-# Exponer puerto telnet para control remoto
-EXPOSE 1234
-
 ENTRYPOINT ["/entrypoint.sh"]
