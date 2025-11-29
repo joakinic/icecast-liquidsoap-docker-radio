@@ -83,6 +83,19 @@ end
 radio = map_metadata(apply_metadata, radio)
 
 # =============================================================================
+# TRACK LOGGING
+# =============================================================================
+
+# Logging track info on metadata change (oficial para Liquidsoap 2.2.5)
+def log_metadata(m) =
+    title = list.assoc("title", m)
+    artist = list.assoc("artist", m)
+    log("[TRACK] Now playing: #{artist} - #{title}")
+end
+
+radio = source.on_metadata(radio, log_metadata)
+
+# =============================================================================
 # OUTPUT TO ICECAST
 # =============================================================================
 
