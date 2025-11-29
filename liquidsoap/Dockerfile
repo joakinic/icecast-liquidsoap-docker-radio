@@ -1,23 +1,26 @@
-FROM savonet/liquidsoap:v2.2.3
+FROM savonet/liquidsoap:v2.2.5
 
-# Install additional tools
+# Cambiar a usuario root para instalaciones
+USER root
+
+# Instalar ffmpeg usando apt (Debian-based)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create directories
-RUN mkdir -p /etc/liquidsoap /var/log/liquidsoap /music
-
-# Copy configuration
+# Copiar scripts
 COPY radio.liq /etc/liquidsoap/radio.liq
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Set working directory
-WORKDIR /etc/liquidsoap
+# Crear directorio de logs
+RUN mkdir -p /var/log/liquidsoap && \
+    chown -R liquidsoap:liquidsoap /var/log/liquidsoap
 
-# Expose telnet port for remote control (optional)
+# Volver a usuario liquidsoap
+USER liquidsoap
+
+# Exponer puerto telnet para control remoto
 EXPOSE 1234
 
 ENTRYPOINT ["/entrypoint.sh"]
