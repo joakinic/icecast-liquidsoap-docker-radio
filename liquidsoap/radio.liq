@@ -67,12 +67,14 @@ radio = fallback(
 def apply_metadata(m) =
     artist = m["artist"]
     title = m["title"]
+    filename = m["filename"]
     
-    # If no metadata, use filename
-    if title == "" then
-        filename = m["filename"]
+    # If no metadata or empty, use filename
+    if title == "" or artist == "" then
         base = path.basename(filename)
-        [("title", base), ("artist", "Unknown Artist")]
+        # Remove extension
+        name = string.replace(pattern="\\.mp3$|\\.flac$|\\.ogg$|\\.m4a$", fun (_) -> "", base)
+        [("title", name), ("artist", "Unknown Artist")]
     else
         [("artist", artist), ("title", title)]
     end
