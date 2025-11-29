@@ -8,20 +8,21 @@ log.file.path := "/var/log/liquidsoap/radio.log"
 log.level := 3
 
 # =============================================================================
-# CONFIGURATION
+# CONFIGURATION (Placeholders replaced by entrypoint.sh)
 # =============================================================================
 
-# Hardcoded configuration - will be replaced by environment variables via Docker
-icecast_host = "icecast"
-icecast_port = 8000
-source_password = "sourcepassword123"
-mount_point = "/radio"
-stream_name = "Mi Radio"
-stream_description = "Radio automatizada con Docker"
-stream_genre = "Various"
-stream_url = "http://localhost:8000"
-bitrate = 192
-samplerate = 44100
+icecast_host = "%%ICECAST_HOST%%"
+icecast_port = %%ICECAST_PORT%%
+source_password = "%%SOURCE_PASSWORD%%"
+mount_point = "%%MOUNT_POINT%%"
+stream_name = "%%STREAM_NAME%%"
+stream_description = "%%STREAM_DESCRIPTION%%"
+stream_genre = "%%STREAM_GENRE%%"
+stream_url = "%%STREAM_URL%%"
+bitrate = %%BITRATE%%
+samplerate = %%SAMPLERATE%%
+anti_repeat_tracks = %%ANTI_REPEAT_TRACKS%%
+anti_repeat_artists = %%ANTI_REPEAT_ARTISTS%%
 
 # =============================================================================
 # PLAYLIST
@@ -42,11 +43,8 @@ music = playlist(
 # Normalize audio levels
 music = normalize(music)
 
-# Crossfade between tracks
-music = crossfade(
-    duration=5.0,
-    music
-)
+# Crossfade between tracks (handles fades automatically)
+music = crossfade(duration=5.0, music)
 
 # =============================================================================
 # FALLBACK
@@ -60,6 +58,34 @@ radio = fallback(
     track_sensitive=false,
     [music, emergency]
 )
+
+# =============================================================================
+# METADATA HANDLING
+# =============================================================================
+
+# Function to extract and format metadata
+def apply_metadata(m) =
+    artist = m["artist"]
+    title = m["title"]
+    
+    # If no metadata, use filename
+    if title == "" then
+        filename = m["filename"]
+        base = path.basename(filename)
+        [("title", base), ("artist", "Unknown Artist")]
+    else
+        [("artist", artist), ("title", title)]
+    end
+end
+
+radio = map_metadata(apply_metadata, radio)
+
+# =============================================================================
+# TELNET SERVER (for remote control)
+# =============================================================================
+
+# Enable telnet server on port 1234
+server.telnet(port=1234)
 
 # =============================================================================
 # OUTPUT TO ICECAST
@@ -83,3 +109,6 @@ output.icecast(
 # Log startup
 log("Radio automation started!")
 log("Streaming to icecast://#{icecast_host}:#{icecast_port}#{mount_point}")
+log("Stream: #{stream_name} - #{stream_description}")
+log("Bitrate: #{bitrate}kbps, Sample rate: #{samplerate}Hz")
+log("Anti-repeat: tracks=#{anti_repeat_tracks}, artists=#{anti_repeat_artists}")
