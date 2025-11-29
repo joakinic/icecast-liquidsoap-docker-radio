@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  icecast:
+    image: infiniteproject/icecast:latest
+    container_name: radio-icecast
+    ports:
+      - "${ICECAST_PORT:-8000}:8000"
+    volumes:
+      - ./config/icecast.xml:/etc/icecast.xml:ro
+      - ./logs/icecast:/var/log/icecast2
+    environment:
+      - ICECAST_ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ICECAST_SOURCE_PASSWORD=${SOURCE_PASSWORD}
+      - ICECAST_RELAY_PASSWORD=${RELAY_PASSWORD}
+      - ICECAST_HOSTNAME=${ICECAST_HOSTNAME:-localhost}
+    restart: unless-stopped
+    networks:
+      - radio-network
+
+  liquidsoap:
+    build:
+      context: ./liquidsoap
+      dockerfile: Dockerfile
+    container_name: radio-liquidsoap
+    volumes:
+      - ${MUSIC_FOLDER_PATH}:/music:ro
+      - ./liquidsoap/radio.liq:/etc/liquidsoap/radio.liq:ro
+      - ./logs/liquidsoap:/var/log/liquidsoap
+    environment:
+      - ICECAST_HOST=icecast
+      - ICECAST_PORT=8000
+      - SOURCE_PASSWORD=${SOURCE_PASSWORD}
+      - MOUNT_POINT=${MOUNT_POINT:-/radio}
+      - STREAM_NAME=${STREAM_NAME:-Mi Radio}
+      - STREAM_DESCRIPTION=${STREAM_DESCRIPTION:-Radio automatizada con Docker}
+      - STREAM_GENRE=${STREAM_GENRE:-Various}
+      - STREAM_URL=${STREAM_URL:-http://localhost:8000}
+      - BITRATE=${BITRATE:-192}
+      - SAMPLERATE=${SAMPLERATE:-44100}
+      - ANTI_REPEAT_TRACKS=${ANTI_REPEAT_TRACKS:-20}
+      - ANTI_REPEAT_ARTISTS=${ANTI_REPEAT_ARTISTS:-5}
+    depends_on:
+      - icecast
+    restart: unless-stopped
+    networks:
+      - radio-network
+
+networks:
+  radio-network:
+    driver: bridge
+
+volumes:
+  icecast-logs:
+  liquidsoap-logs:
